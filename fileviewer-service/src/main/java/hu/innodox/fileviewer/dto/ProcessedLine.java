@@ -11,11 +11,11 @@ public class ProcessedLine implements Serializable {
 	 */
 	private static final long serialVersionUID = 2140073177627363917L;
 
-	private Timestamp processingTimeStamp;
+	private final Timestamp processingTimeStamp;
 	
-	private String threadName;
+	private final String threadName;
 	
-	private String line;
+	private final String line;
 	
 	
 	

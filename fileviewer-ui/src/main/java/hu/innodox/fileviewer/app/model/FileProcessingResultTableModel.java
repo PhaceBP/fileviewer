@@ -7,6 +7,7 @@ package hu.innodox.fileviewer.app.model;
 
 import hu.innodox.fileviewer.dto.ProcessedLine;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
 
@@ -22,9 +23,9 @@ public class FileProcessingResultTableModel extends AbstractTableModel {
 
     private final List<ProcessedLine> processedLines;
 
-    public FileProcessingResultTableModel(List<ProcessedLine> processedLines) {
+    public FileProcessingResultTableModel() {
 
-        this.processedLines = processedLines;
+        this.processedLines = new ArrayList<>();
     }
 
     @Override
@@ -74,4 +75,12 @@ public class FileProcessingResultTableModel extends AbstractTableModel {
         return false;
     }
 
+    public void clearModel(){
+        this.processedLines.clear();
+    }
+    
+    public void addToModel(List<ProcessedLine> lines){
+        this.processedLines.addAll(lines);
+        this.fireTableDataChanged();
+    }
 }

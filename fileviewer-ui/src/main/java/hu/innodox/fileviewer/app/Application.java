@@ -5,11 +5,16 @@
  */
 package hu.innodox.fileviewer.app;
 
-import hu.innodox.fileviewer.dto.ProcessedLine;
+import hu.innodox.fileviewer.app.model.FileProcessingResultTableModel;
+import hu.innodox.fileviewer.utils.FileProcessorUtils;
+import hu.innodox.fileviewer.worker.FileProcessorWorker;
+import hu.innodox.fileviewer.worker.UIRefreshWorker;
+import java.awt.Color;
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -17,10 +22,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */
 public class Application extends javax.swing.JFrame {
 
+    
+    
+    private FileProcessingResultTableModel tableModel;
     /**
      * Creates new form Application
      */
     public Application() {
+        tableModel = new FileProcessingResultTableModel();
         initComponents();
     }
 
@@ -33,26 +42,41 @@ public class Application extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
         jPanelContentHolder = new javax.swing.JPanel();
         jScrollPaneProcessedLineTable = new javax.swing.JScrollPane();
         jTableProcessedLines = new javax.swing.JTable();
+        jLabelProcessing = new javax.swing.JLabel();
         jMenuBar = new javax.swing.JMenuBar();
         jMenuFile = new javax.swing.JMenu();
         jMenuItemOpenFiles = new javax.swing.JMenuItem();
         jMenuItemExit = new javax.swing.JMenuItem();
-        jMenuHelp = new javax.swing.JMenu();
-        jMenuItemAbout = new javax.swing.JMenuItem();
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(jTable1);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jPanelContentHolder.setLayout(new javax.swing.BoxLayout(jPanelContentHolder, javax.swing.BoxLayout.LINE_AXIS));
 
-        jTableProcessedLines.setModel(new hu.innodox.fileviewer.app.model.FileProcessingResultTableModel(new java.util.ArrayList<ProcessedLine>()));
+        jTableProcessedLines.setModel(tableModel);
         jScrollPaneProcessedLineTable.setViewportView(jTableProcessedLines);
 
         jPanelContentHolder.add(jScrollPaneProcessedLineTable);
 
         getContentPane().add(jPanelContentHolder, java.awt.BorderLayout.CENTER);
+        getContentPane().add(jLabelProcessing, java.awt.BorderLayout.PAGE_START);
 
         jMenuFile.setText("File");
 
@@ -76,35 +100,56 @@ public class Application extends javax.swing.JFrame {
 
         jMenuBar.add(jMenuFile);
 
-        jMenuHelp.setText("Help");
-
-        jMenuItemAbout.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItemAbout.setText("About");
-        jMenuHelp.add(jMenuItemAbout);
-
-        jMenuBar.add(jMenuHelp);
-
         setJMenuBar(jMenuBar);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void jMenuItemExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemExitActionPerformed
-        // TODO add your handling code here:
+        System.exit(0);
     }//GEN-LAST:event_jMenuItemExitActionPerformed
 
     private void jMenuItemOpenFilesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemOpenFilesActionPerformed
-        JFileChooser fileopen = new JFileChooser();
-        FileFilter filter = new FileNameExtensionFilter("txt files", "txt");
-        fileopen.addChoosableFileFilter(filter);
+     
+        
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new java.io.File("."));
+        chooser.setDialogTitle("Select directory to process");
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setAcceptAllFileFilterUsed(false);
 
-        int ret = fileopen.showDialog(null, "Open file");
-
-    if (ret == JFileChooser.APPROVE_OPTION) {
-      File file = fileopen.getSelectedFile();
-      System.out.println(file);
+        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {      
+                    
+                    this.jLabelProcessing.setText("Processing started!");
+                    this.jLabelProcessing.setForeground(Color.RED);
+                        
+                    this.tableModel.clearModel();
+                    this.tableModel.fireTableDataChanged();
+                    
+                    File[] txtFiles = FileProcessorUtils.finder(chooser.getSelectedFile());
+                                    
+                    final ExecutorService threadPool = Executors.newFixedThreadPool(txtFiles.length + 1);
+                    
+                    final UIRefreshWorker uiWorker = new UIRefreshWorker(txtFiles.length, () -> {
+                        this.jLabelProcessing.setText("Processing finished!");
+                        this.jLabelProcessing.setForeground(Color.BLUE);
+                    });
+                    
+                    threadPool.submit(uiWorker);
+                    
+                    for(File f : txtFiles){
+                    
+                         FileProcessorWorker worker = new FileProcessorWorker(f, tableModel,uiWorker);
+        
+                         threadPool.submit(worker);
+                    }
+                    
+                    threadPool.shutdown();
+        } else {
+            System.out.println("No Selection ");
+        }     
     }//GEN-LAST:event_jMenuItemOpenFilesActionPerformed
-    }
+
     /**
      * @param args the command line arguments
      */
@@ -141,14 +186,15 @@ public class Application extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabelProcessing;
     private javax.swing.JMenuBar jMenuBar;
     private javax.swing.JMenu jMenuFile;
-    private javax.swing.JMenu jMenuHelp;
-    private javax.swing.JMenuItem jMenuItemAbout;
     private javax.swing.JMenuItem jMenuItemExit;
     private javax.swing.JMenuItem jMenuItemOpenFiles;
     private javax.swing.JPanel jPanelContentHolder;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPaneProcessedLineTable;
+    private javax.swing.JTable jTable1;
     private javax.swing.JTable jTableProcessedLines;
     // End of variables declaration//GEN-END:variables
 }
