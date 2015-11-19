@@ -17,7 +17,7 @@ import javax.swing.table.AbstractTableModel;
  */
 public class FileProcessingResultTableModel extends AbstractTableModel {
 
-    private final Class[] colClasses = {Timestamp.class, String.class, String.class};
+    private final Class[] colClasses = {String.class, String.class, String.class};
 
     private final String[] colNames = {"Processing time", "Processor Thread name", "Processed line"};
 

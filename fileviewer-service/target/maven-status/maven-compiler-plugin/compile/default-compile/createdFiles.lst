@@ -1,3 +1,4 @@
 hu\innodox\fileviewer\dto\ProcessedLine.class
 hu\innodox\fileviewer\exception\ProcessingException.class
 hu\innodox\fileviewer\utils\FileProcessorUtils.class
+hu\innodox\fileviewer\utils\DateUtils.class

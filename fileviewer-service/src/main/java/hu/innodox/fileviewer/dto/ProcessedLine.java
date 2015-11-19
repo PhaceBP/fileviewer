@@ -1,8 +1,7 @@
 package hu.innodox.fileviewer.dto;
 
+import hu.innodox.fileviewer.utils.DateUtils;
 import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.Date;
 
 public class ProcessedLine implements Serializable {
 
@@ -11,7 +10,7 @@ public class ProcessedLine implements Serializable {
 	 */
 	private static final long serialVersionUID = 2140073177627363917L;
 
-	private final Timestamp processingTimeStamp;
+	private final String processingTimeStamp;
 	
 	private final String threadName;
 	
@@ -20,13 +19,13 @@ public class ProcessedLine implements Serializable {
 	
 	
 	public ProcessedLine(String line){
-		this.processingTimeStamp = new Timestamp(new Date().getTime());
+		this.processingTimeStamp = DateUtils.getCurrentTimeStamp();
 		this.threadName = Thread.currentThread().getName();
 		this.line = line;
 	}
 
 
-	public Timestamp getProcessingDate() {
+	public String getProcessingDate() {
 		return processingTimeStamp;
 	}
 
@@ -87,8 +86,5 @@ public class ProcessedLine implements Serializable {
 		return "ProcessedLine [processingTimeStamp=" + processingTimeStamp + ", threadName=" + threadName + ", line="
 				+ line + "]";
 	}
-
-
-	
 	
 }

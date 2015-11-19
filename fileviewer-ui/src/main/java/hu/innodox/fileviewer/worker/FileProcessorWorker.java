@@ -33,8 +33,6 @@ public final class FileProcessorWorker extends SwingWorker<List<ProcessedLine>,V
     
     @Override
     protected List<ProcessedLine> doInBackground() throws Exception {
-        
-        Thread.sleep(4000); // For the tesing
         return FileProcessorUtils.readAndProcessFilePerLine(actualFile);
     }
 
